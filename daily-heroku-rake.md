@@ -29,3 +29,5 @@ For the stack the `Android & Docker, on Ubuntu` one should be perfect.
 I also changed turned off any email notification in case of `On Successful Builds`, as I'm only interested in failed builds.
 
 Add a **Scheduled Build**.
+
+Added bonus: you can get the full stats log file for any previous build in Artifacts!
