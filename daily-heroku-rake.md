@@ -31,3 +31,67 @@ I also changed turned off any email notification in case of `On Successful Build
 Add a **Scheduled Build**.
 
 Added bonus: you can get the full stats log file for any previous build in Artifacts!
+
+## Final config
+
+```yaml
+---
+format_version: '5'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: other
+trigger_map:
+- push_branch: "*"
+  workflow: primary
+- pull_request_source_branch: "*"
+  workflow: primary
+workflows:
+  primary:
+    steps:
+    - activate-ssh-key@4.0.1:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4.0.11: {}
+    - script@1.1.5:
+        title: Install Heroku CLI
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+
+            curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
+            heroku --version
+    - script@1.1.5:
+        title: Heroku run rake
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+
+            # run the rake task and save its output into a file
+            heroku run rake stats:daily_report -a "$HEROKU_APP_ID" > "$BITRISE_DEPLOY_DIR/daily_stats.log"
+
+            # expose the summary as env var
+            tail "$BITRISE_DEPLOY_DIR/daily_stats.log" | envman add --key BITRISE_DAILY_STATS_SUMMARY
+    - slack@2.7.2:
+        inputs:
+        - text: |-
+            Daily Stats:
+
+            ```
+            $BITRISE_DAILY_STATS_SUMMARY
+            ```
+        - webhook_url: "$SLACK_WEBHOOK_URL"
+    - deploy-to-bitrise-io@1.3.12: {}
+app:
+  envs:
+  - HEROKU_API_KEY: "$HEROKU_API_KEY"
+    opts:
+      description: set this in Secrets (.bitrise.secrets.yml)
+  - HEROKU_APP_ID: "$HEROKU_APP_ID"
+    opts:
+      description: set this in Secrets (.bitrise.secrets.yml)
+  - SLACK_WEBHOOK_URL: "$SLACK_WEBHOOK_URL"
+    opts:
+      description: set this in Secrets (.bitrise.secrets.yml)
+
+```
