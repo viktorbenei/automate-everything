@@ -1,4 +1,4 @@
-# Daily Heorku Rake task with notifications
+# Daily Heroku Rake task with notifications
 
 ## Starting point
 
