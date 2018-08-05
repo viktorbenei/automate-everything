@@ -1,6 +1,6 @@
 # Read Secrets from Hashicorp Vault **WIP**
 
-Work in progress.
+Work in progress. Written for Linux, not tested on macOS.
 
 Base config:
 
